@@ -114,6 +114,13 @@ export class GithubController {
     );
   }
 
+  @Get('organizations/:id/repositories')
+  async getRepositoriesByOrganization(@Param('id') id: string) {
+    return this.installationService.getRepositoriesByOrganization(
+      new Types.ObjectId(id),
+    );
+  }
+
   @Patch('repositories/:id/settings')
   async updateRepositorySettings(
     @Param('id') id: string,

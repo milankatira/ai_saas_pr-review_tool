@@ -134,6 +134,20 @@ export class GithubInstallationService {
     return this.repositoryModel.find({ installationId }).exec();
   }
 
+  async getInstallationsByOrganization(
+    organizationId: Types.ObjectId,
+  ): Promise<InstallationDocument[]> {
+    return this.installationModel.find({ organizationId }).exec();
+  }
+
+  async getRepositoriesByOrganization(
+    organizationId: Types.ObjectId,
+  ): Promise<RepositoryDocument[]> {
+    const installations = await this.getInstallationsByOrganization(organizationId);
+    const installationIds = installations.map((i) => i._id);
+    return this.repositoryModel.find({ installationId: { $in: installationIds } }).exec();
+  }
+
   async linkInstallationToOrg(
     installationId: number,
     organizationId: Types.ObjectId,

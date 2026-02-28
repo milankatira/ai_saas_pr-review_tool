@@ -7,15 +7,13 @@ import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/com
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
-import { useOrganizations, useRepositories, useToggleRepository } from '@/hooks/use-api';
+import { useOrganizations, useOrganizationRepositories, useToggleRepository } from '@/hooks/use-api';
 
 export default function RepositoriesPage() {
     const { data: orgsData } = useOrganizations();
     const orgId = orgsData?.data?.[0]?._id;
 
-    // For now, we'll assume a single installation
-    const installationId = 'default';
-    const { data, isLoading } = useRepositories(installationId);
+    const { data, isLoading } = useOrganizationRepositories(orgId);
     const toggleRepo = useToggleRepository();
 
     const repos = data?.data || [];

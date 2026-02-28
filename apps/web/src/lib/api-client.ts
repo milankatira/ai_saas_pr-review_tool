@@ -76,6 +76,9 @@ export const api = {
   getRepositories: (installationId: string) =>
     request<{ data: Repository[] }>(`/github/installations/${installationId}/repositories`),
 
+  getRepositoriesByOrganization: (organizationId: string) =>
+    request<{ data: Repository[] }>(`/github/organizations/${organizationId}/repositories`),
+
   updateRepositorySettings: (repoId: string, settings: Record<string, unknown>) =>
     request<{ data: Repository }>(`/github/repositories/${repoId}/settings`, {
       method: 'PATCH',
