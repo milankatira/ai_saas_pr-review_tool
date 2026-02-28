@@ -24,7 +24,8 @@ export default function RepositoriesPage() {
 
     const handleInstallApp = () => {
         // Redirect to GitHub App installation
-        window.location.href = `https://github.com/apps/${process.env.NEXT_PUBLIC_GITHUB_APP_SLUG}/installations/new`;
+        const appSlug = process.env.NEXT_PUBLIC_GITHUB_APP_SLUG || 'code-review-ai-github';
+        window.location.href = `https://github.com/apps/${appSlug}/installations/new`;
     };
 
     if (isLoading) {
