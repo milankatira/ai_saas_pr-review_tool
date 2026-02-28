@@ -80,7 +80,7 @@ function RecentReviewsTable() {
                         {reviews.map((review) => (
                             <Link
                                 key={review._id}
-                                href={`/dashboard/reviews/${review._id}`}
+                                href={`/reviews/${review._id}`}
                                 className="flex items-center justify-between rounded-lg border p-4 transition-colors hover:bg-accent"
                             >
                                 <div className="flex-1">

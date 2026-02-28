@@ -9,6 +9,7 @@ import {
     CreditCard,
     Menu,
     X,
+    FileCode,
 } from 'lucide-react';
 import { useState } from 'react';
 import { cn } from '@/lib/utils';
@@ -16,9 +17,10 @@ import { Button } from '@/components/ui/button';
 
 const navItems = [
     { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
-    { href: '/dashboard/repositories', label: 'Repositories', icon: GitBranch },
-    { href: '/dashboard/billing', label: 'Billing', icon: CreditCard },
-    { href: '/dashboard/settings', label: 'Settings', icon: Settings },
+    { href: '/repositories', label: 'Repositories', icon: GitBranch },
+    { href: '/reviews', label: 'Reviews', icon: FileCode },
+    { href: '/billing', label: 'Billing', icon: CreditCard },
+    { href: '/settings', label: 'Settings', icon: Settings },
 ];
 
 export function Sidebar() {
