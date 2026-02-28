@@ -112,6 +112,11 @@ export class GithubWebhookController {
 export class GithubController {
   constructor(private installationService: GithubInstallationService) {}
 
+  @Get('installations')
+  async getInstallations() {
+    return this.installationService.getAllInstallations();
+  }
+
   @Get('installations/:id/repositories')
   async getRepositories(@Param('id') id: string) {
     return this.installationService.getRepositoriesByInstallation(
@@ -124,6 +129,16 @@ export class GithubController {
     return this.installationService.getRepositoriesByOrganization(
       new Types.ObjectId(id),
     );
+  }
+
+  @Get('my-repositories')
+  async getMyRepositories() {
+    return this.installationService.getAllRepositories();
+  }
+
+  @Post('sync-repositories')
+  async syncRepositories() {
+    return this.installationService.syncAllRepositories();
   }
 
   @Patch('repositories/:id/settings')

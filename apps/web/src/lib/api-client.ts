@@ -51,6 +51,9 @@ async function request<T>(
 }
 
 export const api = {
+  // Generic request
+  request: request,
+
   // Auth
   getAuthUrl: () => `${API_URL}/auth/github`,
 
@@ -78,6 +81,9 @@ export const api = {
 
   getRepositoriesByOrganization: (organizationId: string) =>
     request<{ data: Repository[] }>(`/github/organizations/${organizationId}/repositories`),
+
+  getAllRepositories: () =>
+    request<{ data: Repository[] }>("/github/my-repositories"),
 
   updateRepositorySettings: (repoId: string, settings: Record<string, unknown>) =>
     request<{ data: Repository }>(`/github/repositories/${repoId}/settings`, {

@@ -34,6 +34,13 @@ export function useOrganizationRepositories(organizationId: string | undefined) 
   });
 }
 
+export function useAllRepositories() {
+  return useQuery({
+    queryKey: ['repositories', 'all'],
+    queryFn: () => api.getAllRepositories(),
+  });
+}
+
 export function useReviews(params: {
   organizationId?: string;
   repositoryId?: string;

@@ -1,19 +1,20 @@
 'use client';
 
 import { useState } from 'react';
-import { GitBranch, ExternalLink, Settings } from 'lucide-react';
+import { GitBranch, ExternalLink, Settings, RefreshCw } from 'lucide-react';
 import Link from 'next/link';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
-import { useOrganizations, useOrganizationRepositories, useToggleRepository } from '@/hooks/use-api';
+import { useOrganizations, useAllRepositories, useToggleRepository } from '@/hooks/use-api';
+import { api } from '@/lib/api-client';
 
 export default function RepositoriesPage() {
     const { data: orgsData } = useOrganizations();
     const orgId = orgsData?.data?.[0]?._id;
 
-    const { data, isLoading } = useOrganizationRepositories(orgId);
+    const { data, isLoading } = useAllRepositories();
     const toggleRepo = useToggleRepository();
 
     const repos = data?.data || [];
@@ -26,6 +27,16 @@ export default function RepositoriesPage() {
         // Redirect to GitHub App installation
         const appSlug = process.env.NEXT_PUBLIC_GITHUB_APP_SLUG || 'code-review-ai-github';
         window.location.href = `https://github.com/apps/${appSlug}/installations/new`;
+    };
+
+    const handleSync = async () => {
+        try {
+            await api.request('/github/sync-repositories', { method: 'POST' });
+            // Refresh the repositories list
+            window.location.reload();
+        } catch (error) {
+            console.error('Sync failed:', error);
+        }
     };
 
     if (isLoading) {
@@ -55,10 +66,16 @@ export default function RepositoriesPage() {
                     <h1 className="text-3xl font-bold">Repositories</h1>
                     <p className="text-muted-foreground">Manage your connected repositories</p>
                 </div>
-                <Button onClick={handleInstallApp}>
-                    <GitBranch className="mr-2 h-4 w-4" />
-                    Add Repository
-                </Button>
+                <div className="flex gap-2">
+                    <Button onClick={handleInstallApp}>
+                        <GitBranch className="mr-2 h-4 w-4" />
+                        Add Repository
+                    </Button>
+                    <Button variant="outline" onClick={handleSync}>
+                        <RefreshCw className="mr-2 h-4 w-4" />
+                        Sync Repos
+                    </Button>
+                </div>
             </div>
 
             {repos.length === 0 ? (

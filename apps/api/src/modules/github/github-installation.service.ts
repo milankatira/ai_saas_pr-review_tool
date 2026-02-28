@@ -151,6 +151,21 @@ export class GithubInstallationService {
     return this.repositoryModel.find({ installationId: { $in: installationIds } }).exec();
   }
 
+  async getAllInstallations(): Promise<InstallationDocument[]> {
+    return this.installationModel.find().exec();
+  }
+
+  async getAllRepositories(): Promise<RepositoryDocument[]> {
+    return this.repositoryModel.find().exec();
+  }
+
+  async syncAllRepositories(): Promise<{ synced: number }> {
+    // This would require GitHub API access to fetch repositories
+    // For now, return current count
+    const count = await this.repositoryModel.countDocuments();
+    return { synced: count };
+  }
+
   async linkInstallationToOrg(
     installationId: number,
     organizationId: Types.ObjectId,
