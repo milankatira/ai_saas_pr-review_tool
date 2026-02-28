@@ -3,6 +3,7 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
 import { Installation, InstallationDocument } from './schemas/installation.schema';
 import { Repository, RepositoryDocument } from './schemas/repository.schema';
+import { User, UserDocument } from '../users/schemas/user.schema';
 
 @Injectable()
 export class GithubInstallationService {
@@ -11,6 +12,8 @@ export class GithubInstallationService {
     private installationModel: Model<InstallationDocument>,
     @InjectModel(Repository.name)
     private repositoryModel: Model<RepositoryDocument>,
+    @InjectModel(User.name)
+    private userModel: Model<UserDocument>,
   ) {}
 
   async handleInstallationCreated(payload: any): Promise<InstallationDocument> {
@@ -162,6 +165,25 @@ export class GithubInstallationService {
     if (!installation) {
       throw new NotFoundException('Installation not found');
     }
+
+    return installation;
+  }
+
+  async linkInstallationToUserOrg(
+    installationId: number,
+    githubUsername: string,
+  ): Promise<InstallationDocument | null> {
+    // Find user by GitHub username
+    const user = await this.userModel.findOne({ username: githubUsername });
+    if (!user || !user.organizationId) {
+      return null;
+    }
+
+    const installation = await this.installationModel.findOneAndUpdate(
+      { installationId },
+      { organizationId: user.organizationId, userId: user._id },
+      { new: true },
+    );
 
     return installation;
   }

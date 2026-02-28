@@ -5,6 +5,7 @@ import { GithubAppService } from './github-app.service';
 import { GithubInstallationService } from './github-installation.service';
 import { Installation, InstallationSchema } from './schemas/installation.schema';
 import { Repository, RepositorySchema } from './schemas/repository.schema';
+import { User, UserSchema } from '../users/schemas/user.schema';
 import { QueueModule } from '../queue/queue.module';
 
 @Module({
@@ -12,6 +13,7 @@ import { QueueModule } from '../queue/queue.module';
     MongooseModule.forFeature([
       { name: Installation.name, schema: InstallationSchema },
       { name: Repository.name, schema: RepositorySchema },
+      { name: User.name, schema: UserSchema },
     ]),
     forwardRef(() => QueueModule),
   ],

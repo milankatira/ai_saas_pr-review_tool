@@ -30,11 +30,16 @@ export class GithubWebhookController {
   }
 
   private async handleInstallationEvent(payload: any) {
-    const { action } = payload;
+    const { action, installation, sender } = payload;
 
     switch (action) {
       case 'created':
         await this.installationService.handleInstallationCreated(payload);
+        // Try to link installation to user's organization
+        await this.installationService.linkInstallationToUserOrg(
+          installation.id,
+          sender.login,
+        );
         break;
       case 'deleted':
         await this.installationService.handleInstallationDeleted(payload);
