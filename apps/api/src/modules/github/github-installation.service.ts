@@ -166,6 +166,12 @@ export class GithubInstallationService {
     return { synced: count };
   }
 
+  async getRepositoryPullRequests(repositoryId: Types.ObjectId): Promise<any[]> {
+    // This would require GitHub API access to fetch PRs
+    // For now, return empty array
+    return [];
+  }
+
   async linkInstallationToOrg(
     installationId: number,
     organizationId: Types.ObjectId,

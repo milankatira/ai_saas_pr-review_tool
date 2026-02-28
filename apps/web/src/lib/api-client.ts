@@ -85,6 +85,15 @@ export const api = {
   getAllRepositories: () =>
     request<{ data: Repository[] }>("/github/my-repositories"),
 
+  getRepositoryPulls: (repositoryId: string) =>
+    request<{ data: any[] }>(`/github/repositories/${repositoryId}/pulls`),
+
+  triggerReview: (repositoryId: string, prNumber: number) =>
+    request<{ data: { reviewId: string } }>("/github/reviews/trigger", {
+      method: "POST",
+      body: JSON.stringify({ repositoryId, prNumber }),
+    }),
+
   updateRepositorySettings: (repoId: string, settings: Record<string, unknown>) =>
     request<{ data: Repository }>(`/github/repositories/${repoId}/settings`, {
       method: 'PATCH',

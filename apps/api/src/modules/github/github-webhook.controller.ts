@@ -136,9 +136,23 @@ export class GithubController {
     return this.installationService.getAllRepositories();
   }
 
+  @Get('repositories/:id/pulls')
+  async getRepositoryPulls(@Param('id') id: string) {
+    return this.installationService.getRepositoryPullRequests(
+      new Types.ObjectId(id),
+    );
+  }
+
   @Post('sync-repositories')
   async syncRepositories() {
     return this.installationService.syncAllRepositories();
+  }
+
+  @Post('reviews/trigger')
+  async triggerReview(@Body() body: { repositoryId: string; prNumber: number }) {
+    // This would trigger a review
+    // For now, return a placeholder
+    return { data: { reviewId: 'temp-review-id' } };
   }
 
   @Patch('repositories/:id/settings')

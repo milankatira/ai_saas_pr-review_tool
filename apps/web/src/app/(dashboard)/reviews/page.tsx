@@ -1,9 +1,10 @@
 'use client';
 
 import Link from 'next/link';
-import { FileCode, GitBranch, Clock } from 'lucide-react';
+import { FileCode, GitBranch, Clock, Plus } from 'lucide-react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useReviews, useOrganizations } from '@/hooks/use-api';
 import { formatRelativeTime } from '@/lib/utils';
@@ -37,9 +38,17 @@ export default function ReviewsPage() {
 
     return (
         <div className="space-y-6">
-            <div>
-                <h1 className="text-3xl font-bold">Reviews</h1>
-                <p className="text-muted-foreground">All your AI code reviews</p>
+            <div className="flex items-center justify-between">
+                <div>
+                    <h1 className="text-3xl font-bold">Reviews</h1>
+                    <p className="text-muted-foreground">All your AI code reviews</p>
+                </div>
+                <Button asChild>
+                    <Link href="/reviews/create">
+                        <Plus className="mr-2 h-4 w-4" />
+                        New Review
+                    </Link>
+                </Button>
             </div>
 
             {reviews.length === 0 ? (
