@@ -24,7 +24,7 @@ export class ReviewComment {
 
   @Prop({
     required: true,
-    enum: ['readability', 'performance', 'security', 'react-antipattern'],
+    enum: ['correctness', 'security', 'performance', 'maintainability', 'best_practice'],
   })
   category: string;
 

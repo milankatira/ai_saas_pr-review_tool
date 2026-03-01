@@ -29,11 +29,16 @@ export class CommentPosterService {
     // Format inline comments
     const inlineComments: ReviewComment[] = issues
       .filter((issue) => issue.line > 0)
-      .map((issue) => ({
-        path: issue.file,
-        line: issue.line,
-        body: this.formatIssueComment(issue),
-      }));
+      .map((issue) => {
+        const isMultiLine = issue.endLine && issue.endLine > issue.line;
+        return {
+          path: issue.file,
+          line: isMultiLine ? issue.endLine! : issue.line,
+          start_line: isMultiLine ? issue.line : undefined,
+          side: 'RIGHT',
+          body: this.formatIssueComment(issue),
+        };
+      });
 
     // Build summary comment
     const summaryBody = this.formatSummaryComment(summary, issues, metrics);
@@ -159,14 +164,16 @@ export class CommentPosterService {
 
   private getCategoryBadge(category: string): string {
     switch (category) {
+      case 'correctness':
+        return '`🐞 correctness`';
       case 'security':
         return '`🔒 security`';
       case 'performance':
         return '`⚡ performance`';
-      case 'readability':
-        return '`📖 readability`';
-      case 'react-antipattern':
-        return '`⚛️ react`';
+      case 'maintainability':
+        return '`🛠️ maintainability`';
+      case 'best_practice':
+        return '`✨ best practice`';
       default:
         return `\`${category}\``;
     }
@@ -174,14 +181,16 @@ export class CommentPosterService {
 
   private formatCategoryName(category: string): string {
     switch (category) {
+      case 'correctness':
+        return '🐞 Correctness & Logic';
       case 'security':
         return '🔒 Security';
       case 'performance':
         return '⚡ Performance';
-      case 'readability':
-        return '📖 Readability';
-      case 'react-antipattern':
-        return '⚛️ React Patterns';
+      case 'maintainability':
+        return '🛠️ Maintainability';
+      case 'best_practice':
+        return '✨ Best Practices';
       default:
         return category;
     }

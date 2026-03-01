@@ -289,7 +289,7 @@ export class AiReviewService {
     }
 
     if (warnings > 5) {
-      return `Found ${warnings} warnings across the changes. Consider addressing the performance and readability concerns.`;
+      return `Found ${warnings} warnings across the changes. Consider addressing the performance, maintainability, and correctness concerns.`;
     }
 
     return `Found ${issues.length} suggestion(s) for improvement. Overall the code is in good shape with minor improvements possible.`;
