@@ -69,8 +69,7 @@ export class ReviewProcessor {
     }
 
     // Create review record
-    const review = await this.reviewsService.create({
-      userId: new Types.ObjectId(userId),
+    const reviewCreateData: any = {
       repositoryId: repoDoc._id,
       installationId: installationDoc._id,
       organizationId: installationDoc.organizationId,
@@ -79,7 +78,13 @@ export class ReviewProcessor {
       prAuthor,
       prUrl,
       commitSha,
-    });
+    };
+
+    if (userId) {
+      reviewCreateData.userId = new Types.ObjectId(userId);
+    }
+
+    const review = await this.reviewsService.create(reviewCreateData);
 
     try {
       // Update status to processing
