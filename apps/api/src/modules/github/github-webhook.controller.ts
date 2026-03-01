@@ -1,14 +1,16 @@
-import { Controller, Post, Body, Headers, UseGuards, Get, Param, Patch } from '@nestjs/common';
+import { Controller, Post, Body, Headers, UseGuards, Get, Param, Patch, BadRequestException } from '@nestjs/common';
 import { Types } from 'mongoose';
 import { GithubWebhookGuard } from '../../common/guards/github-webhook.guard';
 import { GithubInstallationService } from './github-installation.service';
 import { QueueService } from '../queue/queue.service';
+import { ReviewsService } from '../reviews/reviews.service';
 
 @Controller('webhooks/github')
 export class GithubWebhookController {
   constructor(
     private installationService: GithubInstallationService,
     private queueService: QueueService,
+    private reviewsService: ReviewsService,
   ) {}
 
   @Post()
@@ -110,7 +112,10 @@ export class GithubWebhookController {
 
 @Controller('github')
 export class GithubController {
-  constructor(private installationService: GithubInstallationService) {}
+  constructor(
+    private installationService: GithubInstallationService,
+    private reviewsService: ReviewsService,
+  ) {}
 
   @Get('installations')
   async getInstallations() {
@@ -150,9 +155,59 @@ export class GithubController {
 
   @Post('reviews/trigger')
   async triggerReview(@Body() body: { repositoryId: string; prNumber: number }) {
-    // This would trigger a review
-    // For now, return a placeholder
-    return { data: { reviewId: 'temp-review-id' } };
+    const { repositoryId, prNumber } = body;
+
+    // Get repository details
+    const repo = await this.installationService.getRepositoryById(
+      new Types.ObjectId(repositoryId),
+    );
+
+    if (!repo) {
+      throw new BadRequestException('Repository not found');
+    }
+
+    // Get installation details
+    const installation = await this.installationService.getInstallationById(
+      repo.installationId,
+    );
+
+    if (!installation) {
+      throw new BadRequestException('Installation not found');
+    }
+
+    // Extract owner and repo name from fullName
+    const [owner, repoName] = repo.fullName.split('/');
+    if (!owner || !repoName) {
+      throw new BadRequestException('Invalid repository name format');
+    }
+
+    try {
+      // Get PR details from GitHub
+      const prDetails = await this.installationService.fetchPRDetails(
+        installation.installationId,
+        owner,
+        repoName,
+        prNumber,
+      );
+
+      // Create review in database
+      const review = await this.reviewsService.create({
+        repositoryId: repo._id,
+        installationId: installation._id,
+        prNumber: prNumber,
+        prTitle: prDetails.title,
+        prAuthor: prDetails.author,
+        prUrl: prDetails.url,
+        commitSha: prDetails.headSha,
+      });
+
+      // TODO: Queue the review for processing
+      // For now, return the created review ID
+      return { data: { reviewId: review._id.toString() } };
+    } catch (error) {
+      console.error('Error triggering review:', error);
+      throw new BadRequestException('Failed to trigger review');
+    }
   }
 
   @Patch('repositories/:id/settings')

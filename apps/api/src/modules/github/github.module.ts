@@ -7,6 +7,7 @@ import { Installation, InstallationSchema } from './schemas/installation.schema'
 import { Repository, RepositorySchema } from './schemas/repository.schema';
 import { User, UserSchema } from '../users/schemas/user.schema';
 import { QueueModule } from '../queue/queue.module';
+import { ReviewsModule } from '../reviews/reviews.module';
 
 @Module({
   imports: [
@@ -16,6 +17,7 @@ import { QueueModule } from '../queue/queue.module';
       { name: User.name, schema: UserSchema },
     ]),
     forwardRef(() => QueueModule),
+    ReviewsModule,
   ],
   controllers: [GithubWebhookController, GithubController],
   providers: [GithubAppService, GithubInstallationService],

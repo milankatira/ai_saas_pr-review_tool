@@ -168,6 +168,15 @@ export class GithubInstallationService {
     return { synced: count };
   }
 
+  async fetchPRDetails(
+    installationId: number,
+    owner: string,
+    repo: string,
+    prNumber: number,
+  ) {
+    return this.githubAppService.fetchPRDetails(installationId, owner, repo, prNumber);
+  }
+
   async getRepositoryPullRequests(repositoryId: Types.ObjectId): Promise<any[]> {
     const repo = await this.repositoryModel.findById(repositoryId);
     if (!repo) {
