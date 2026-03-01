@@ -237,7 +237,7 @@ The application will be available at:
 | `STRIPE_WEBHOOK_SECRET` | Stripe webhook secret | From Stripe dashboard |
 | `STRIPE_PRICE_PRO_MONTHLY` | Pro plan price ID | Price ID from Stripe |
 
-##📖
+## 📖 Usage
 
 ### For Developers
 
