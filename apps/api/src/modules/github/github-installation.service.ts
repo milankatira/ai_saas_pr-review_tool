@@ -1,9 +1,10 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
 import { Installation, InstallationDocument } from './schemas/installation.schema';
 import { Repository, RepositoryDocument } from './schemas/repository.schema';
 import { User, UserDocument } from '../users/schemas/user.schema';
+import { GithubAppService } from './github-app.service';
 
 @Injectable()
 export class GithubInstallationService {
@@ -14,6 +15,7 @@ export class GithubInstallationService {
     private repositoryModel: Model<RepositoryDocument>,
     @InjectModel(User.name)
     private userModel: Model<UserDocument>,
+    private githubAppService: GithubAppService,
   ) {}
 
   async handleInstallationCreated(payload: any): Promise<InstallationDocument> {
@@ -167,9 +169,50 @@ export class GithubInstallationService {
   }
 
   async getRepositoryPullRequests(repositoryId: Types.ObjectId): Promise<any[]> {
-    // This would require GitHub API access to fetch PRs
-    // For now, return empty array
-    return [];
+    const repo = await this.repositoryModel.findById(repositoryId);
+    if (!repo) {
+      throw new NotFoundException('Repository not found');
+    }
+
+    // Extract owner and repo name from fullName (owner/repo format)
+    const [owner, repoName] = repo.fullName.split('/');
+    if (!owner || !repoName) {
+      throw new BadRequestException('Invalid repository name format');
+    }
+
+    try {
+      // Get the installation document to get the actual GitHub installation ID
+      const installation = await this.installationModel.findById(repo.installationId);
+      if (!installation) {
+        throw new BadRequestException('Installation not found for repository');
+      }
+
+      const octokit = await this.githubAppService.getInstallationClient(installation.installationId);
+
+      const { data: prs } = await octokit.pulls.list({
+        owner,
+        repo: repoName,
+        state: 'open',
+        per_page: 30,
+        sort: 'updated',
+        direction: 'desc',
+      });
+
+      return prs.map((pr: any) => ({
+        number: pr.number,
+        title: pr.title,
+        author: pr.user?.login || 'unknown',
+        state: pr.state,
+        url: pr.html_url,
+        created_at: pr.created_at,
+        updated_at: pr.updated_at,
+        base: pr.base.ref,
+        head: pr.head.ref,
+      }));
+    } catch (error) {
+      console.error('Error fetching PRs:', error);
+      throw new BadRequestException('Failed to fetch pull requests from GitHub');
+    }
   }
 
   async linkInstallationToOrg(
