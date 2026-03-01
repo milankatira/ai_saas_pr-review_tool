@@ -6,18 +6,12 @@ import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
-import { useReviews, useOrganizations } from '@/hooks/use-api';
+import { useReviews } from '@/hooks/use-api';
 import { formatRelativeTime } from '@/lib/utils';
 
 export default function ReviewsPage() {
-    const { data: orgsData } = useOrganizations();
-    const orgId = orgsData?.data?.[0]?._id;
-
-    const { data, isLoading } = useReviews({
-        organizationId: orgId,
-        limit: 50,
-    });
-
+    const { data, isLoading } = useReviews({ limit: 50 });
+console.log(data,"data")
     const reviews = data?.data?.reviews || [];
 
     if (isLoading) {

@@ -14,6 +14,9 @@ export enum ReviewStatus {
 export class Review {
   _id: Types.ObjectId;
 
+  @Prop({ type: Types.ObjectId, ref: 'User' })
+  userId: Types.ObjectId;
+
   @Prop({ type: Types.ObjectId, ref: 'Repository', required: true })
   repositoryId: Types.ObjectId;
 

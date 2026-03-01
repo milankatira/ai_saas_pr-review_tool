@@ -38,7 +38,7 @@ function StatsCard({
 }
 
 function RecentReviewsTable() {
-    const { data: orgsData } = useOrganizations();
+    const { data: orgsData, isLoading: isOrgsLoading } = useOrganizations();
     const orgId = orgsData?.data?.[0]?._id;
 
     const { data, isLoading } = useReviews({
@@ -48,7 +48,7 @@ function RecentReviewsTable() {
 
     const reviews = data?.data?.reviews || [];
 
-    if (isLoading) {
+    if (isOrgsLoading || isLoading) {
         return (
             <Card>
                 <CardHeader>

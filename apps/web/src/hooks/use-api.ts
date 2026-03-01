@@ -41,15 +41,14 @@ export function useAllRepositories() {
   });
 }
 
-export function useReviews(params: {
+export function useReviews(params?: {
   organizationId?: string;
   repositoryId?: string;
   limit?: number;
 }) {
   return useQuery({
     queryKey: ['reviews', params],
-    queryFn: () => api.getReviews(params),
-    enabled: !!(params.organizationId || params.repositoryId),
+    queryFn: () => api.getReviews(params || {}),
   });
 }
 

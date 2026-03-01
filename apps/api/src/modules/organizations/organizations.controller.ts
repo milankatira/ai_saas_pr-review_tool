@@ -30,12 +30,14 @@ export class OrganizationsController {
 
   @Get()
   async findAll(@CurrentUser() user: UserDocument) {
-    return this.orgsService.findByUser(user._id);
+    const organizations = await this.orgsService.findByUser(user._id);
+    return { data: organizations };
   }
 
   @Get(':id')
   async findOne(@Param('id') id: string) {
-    return this.orgsService.findById(id);
+    const organization = await this.orgsService.findById(id);
+    return { data: organization };
   }
 
   @Patch(':id')

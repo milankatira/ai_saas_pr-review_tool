@@ -10,6 +10,8 @@ import { Types } from 'mongoose';
 import { ReviewsService } from './reviews.service';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { ReviewStatus } from './schemas/review.schema';
+import { CurrentUser } from '../../common/decorators/current-user.decorator';
+import { UserDocument } from '../users/schemas/user.schema';
 
 @Controller('reviews')
 @UseGuards(JwtAuthGuard)
@@ -18,6 +20,7 @@ export class ReviewsController {
 
   @Get()
   async findAll(
+    @CurrentUser() user: UserDocument,
     @Query('organizationId') organizationId?: string,
     @Query('repositoryId') repositoryId?: string,
     @Query('status') status?: ReviewStatus,
@@ -31,43 +34,48 @@ export class ReviewsController {
     };
 
     if (repositoryId) {
-      return this.reviewsService.findByRepository(
+      const result = await this.reviewsService.findByRepository(
         new Types.ObjectId(repositoryId),
         options,
       );
+      return { data: result };
     }
 
     if (organizationId) {
-      return this.reviewsService.findByOrganization(
+      const result = await this.reviewsService.findByOrganization(
         new Types.ObjectId(organizationId),
         options,
       );
+      return { data: result };
     }
 
-    return { reviews: [], total: 0 };
+    const result = await this.reviewsService.findByUser(user._id, options);
+    return { data: result };
   }
 
   @Get('stats')
   async getStats(@Query('organizationId') organizationId?: string) {
-    return this.reviewsService.getStats(
+    const stats = await this.reviewsService.getStats(
       organizationId ? new Types.ObjectId(organizationId) : undefined,
     );
+    return { data: stats };
   }
 
   @Get(':id')
   async findOne(@Param('id') id: string) {
     const review = await this.reviewsService.findById(id);
     if (!review) {
-      return null;
+      return { data: null };
     }
 
     const comments = await this.reviewsService.getComments(review._id);
-    return { review, comments };
+    return { data: { review, comments } };
   }
 
   @Get(':id/comments')
   async getComments(@Param('id') id: string) {
-    return this.reviewsService.getComments(new Types.ObjectId(id));
+    const comments = await this.reviewsService.getComments(new Types.ObjectId(id));
+    return { data: comments };
   }
 
   @Post(':id/retry')

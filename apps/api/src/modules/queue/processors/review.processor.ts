@@ -5,7 +5,6 @@ import { Types } from 'mongoose';
 import { ReviewJobData } from '../queue.service';
 import { ReviewsService } from '../../reviews/reviews.service';
 import { GithubAppService } from '../../github/github-app.service';
-import { GithubInstallationService } from '../../github/github-installation.service';
 import { AiReviewService } from '../../ai-review/ai-review.service';
 import { CommentPosterService } from '../../ai-review/comment-poster.service';
 import { SubscriptionService } from '../../billing/subscription.service';
@@ -18,7 +17,6 @@ export class ReviewProcessor {
   constructor(
     private reviewsService: ReviewsService,
     private githubAppService: GithubAppService,
-    private githubInstallationService: GithubInstallationService,
     private aiReviewService: AiReviewService,
     private commentPosterService: CommentPosterService,
     private subscriptionService: SubscriptionService,
@@ -27,36 +25,25 @@ export class ReviewProcessor {
   @Process('process-review')
   async processReview(job: Job<ReviewJobData>) {
     console.log('ReviewProcessor: Received job', job.data);
-    const { installationId, repositoryId, owner, repo, prNumber, prTitle, prAuthor, prUrl, commitSha } =
+    const { reviewId, installationId, repositoryId, owner, repo, prNumber, prTitle, prAuthor, prUrl, commitSha, userId } =
       job.data;
 
     this.logger.log(`Processing review for ${owner}/${repo}#${prNumber}`);
 
-    // Get repository and installation
-    const repoDoc = await this.githubInstallationService.getRepositoryById(
-      new Types.ObjectId(repositoryId),
-    );
+    // Get existing review by ID
+    const review = await this.reviewsService.findById(new Types.ObjectId(reviewId));
 
-    if (!repoDoc) {
-      throw new Error('Repository not found');
+    if (!review) {
+      throw new Error('Review not found');
     }
 
-    const installationDoc = await this.githubInstallationService.getInstallationById(
-      repoDoc.installationId,
-    );
-
-    if (!installationDoc) {
-      throw new Error('Installation not found');
-    }
-
-    // Check subscription limits
-    if (installationDoc.organizationId) {
+    // Check subscription limits using review's organizationId
+    if (review.organizationId) {
       const canReview = await this.subscriptionService.canPerformReview(
-        installationDoc.organizationId.toString(),
+        review.organizationId.toString(),
       );
 
       if (!canReview) {
-        // Post comment about limit reached
         await this.githubAppService.postComment(
           installationId,
           owner,
@@ -67,18 +54,6 @@ export class ReviewProcessor {
         throw new Error('Review limit reached');
       }
     }
-
-    // Create review record
-    const review = await this.reviewsService.create({
-      repositoryId: repoDoc._id,
-      installationId: installationDoc._id,
-      organizationId: installationDoc.organizationId,
-      prNumber,
-      prTitle,
-      prAuthor,
-      prUrl,
-      commitSha,
-    });
 
     try {
       // Update status to processing
@@ -144,9 +119,9 @@ export class ReviewProcessor {
       );
 
       // Track usage
-      if (installationDoc.organizationId) {
+      if (review.organizationId) {
         await this.subscriptionService.recordUsage(
-          installationDoc.organizationId.toString(),
+          review.organizationId.toString(),
           review._id.toString(),
         );
       }

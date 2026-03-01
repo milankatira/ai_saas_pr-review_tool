@@ -187,6 +187,7 @@ export interface Review {
   prUrl: string;
   commitSha: string;
   status: 'pending' | 'processing' | 'completed' | 'failed';
+  errorMessage?: string;
   summary?: {
     totalIssues: number;
     critical: number;
