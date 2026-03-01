@@ -25,7 +25,7 @@ export default function ReviewsPage() {
             <div className="space-y-6">
                 <div>
                     <h1 className="text-3xl font-bold">Reviews</h1>
-                    <p className="text-muted-foreground">All your AI code reviews</p>
+                    <p className="text-muted-foreground">Loading your review history...</p>
                 </div>
                 <div className="space-y-4">
                     {[...Array(5)].map((_, i) => (
@@ -41,7 +41,7 @@ export default function ReviewsPage() {
             <div className="flex items-center justify-between">
                 <div>
                     <h1 className="text-3xl font-bold">Reviews</h1>
-                    <p className="text-muted-foreground">All your AI code reviews</p>
+                    <p className="text-muted-foreground">All your AI code review history</p>
                 </div>
                 <Button asChild>
                     <Link href="/reviews/create">
@@ -57,7 +57,7 @@ export default function ReviewsPage() {
                         <FileCode className="h-12 w-12 text-muted-foreground" />
                         <h3 className="mt-4 text-lg font-semibold">No reviews yet</h3>
                         <p className="mt-2 text-center text-muted-foreground">
-                            Connect a repository and create a pull request to get started.
+                            Trigger a review by clicking "New Review" above.
                         </p>
                     </CardContent>
                 </Card>
@@ -78,7 +78,9 @@ export default function ReviewsPage() {
                                                 ? 'success'
                                                 : review.status === 'failed'
                                                     ? 'destructive'
-                                                    : 'secondary'
+                                                    : review.status === 'processing'
+                                                        ? 'default'
+                                                        : 'secondary'
                                         }
                                     >
                                         {review.status}
@@ -93,12 +95,20 @@ export default function ReviewsPage() {
                                 </div>
                             </div>
                             <div className="text-right">
-                                {review.summary && (
+                                {review.status === 'pending' ? (
+                                    <p className="text-sm text-muted-foreground">
+                                        Review pending...
+                                    </p>
+                                ) : review.status === 'processing' ? (
+                                    <p className="text-sm text-muted-foreground">
+                                        Analyzing code...
+                                    </p>
+                                ) : review.summary ? (
                                     <p className="text-sm text-muted-foreground">
                                         {review.summary.totalIssues} issue
                                         {review.summary.totalIssues !== 1 ? 's' : ''}
                                     </p>
-                                )}
+                                ) : null}
                                 <p className="flex items-center gap-1 text-xs text-muted-foreground">
                                     <Clock className="h-3 w-3" />
                                     {formatRelativeTime(review.createdAt)}
