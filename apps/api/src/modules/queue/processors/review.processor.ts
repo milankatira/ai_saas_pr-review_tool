@@ -110,7 +110,7 @@ export class ReviewProcessor {
 
       // Post comments to GitHub
       this.logger.log('Posting comments to GitHub...');
-      await this.commentPosterService.postReviewComments(
+      const postResult = await this.commentPosterService.postReviewComments(
         installationId,
         owner,
         repo,
@@ -122,6 +122,11 @@ export class ReviewProcessor {
           processingTimeMs: reviewResult.metrics.processingTimeMs,
         },
       );
+
+      if (!postResult.success) {
+        this.logger.warn(`GitHub comment posting failed: ${postResult.error}`);
+        // Continue processing - the review is still successful and stored in DB
+      }
       job.progress(90);
 
       // Record completion

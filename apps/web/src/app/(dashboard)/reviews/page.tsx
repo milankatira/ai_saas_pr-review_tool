@@ -92,6 +92,11 @@ export default function ReviewsPage() {
                                         #{review.prNumber}
                                     </span>
                                     <span>by {review.prAuthor}</span>
+                                    {review.metrics?.processingTimeMs && (
+                                        <span>
+                                            ⚡ {(review.metrics.processingTimeMs / 1000).toFixed(1)}s
+                                        </span>
+                                    )}
                                 </div>
                             </div>
                             <div className="text-right">
@@ -103,11 +108,34 @@ export default function ReviewsPage() {
                                     <p className="text-sm text-muted-foreground">
                                         Analyzing code...
                                     </p>
-                                ) : review.summary ? (
-                                    <p className="text-sm text-muted-foreground">
-                                        {review.summary.totalIssues} issue
-                                        {review.summary.totalIssues !== 1 ? 's' : ''}
+                                ) : review.status === 'failed' ? (
+                                    <p className="text-sm text-destructive">
+                                        {review.errorMessage || 'Review failed'}
                                     </p>
+                                ) : review.summary ? (
+                                    <div className="text-sm text-muted-foreground">
+                                        <p>
+                                            {review.summary.totalIssues} issue
+                                            {review.summary.totalIssues !== 1 ? 's' : ''}
+                                        </p>
+                                        <div className="flex gap-2 mt-1">
+                                            {review.summary.critical > 0 && (
+                                                <Badge variant="destructive" className="text-xs">
+                                                    🔴 {review.summary.critical}
+                                                </Badge>
+                                            )}
+                                            {review.summary.warnings > 0 && (
+                                                <Badge variant="secondary" className="text-xs">
+                                                    🟡 {review.summary.warnings}
+                                                </Badge>
+                                            )}
+                                            {review.summary.infos > 0 && (
+                                                <Badge variant="outline" className="text-xs">
+                                                    🔵 {review.summary.infos}
+                                                </Badge>
+                                            )}
+                                        </div>
+                                    </div>
                                 ) : null}
                                 <p className="flex items-center gap-1 text-xs text-muted-foreground">
                                     <Clock className="h-3 w-3" />

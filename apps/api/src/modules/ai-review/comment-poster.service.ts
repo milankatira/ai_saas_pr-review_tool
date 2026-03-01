@@ -25,7 +25,7 @@ export class CommentPosterService {
       costUsd: number;
       processingTimeMs: number;
     },
-  ): Promise<void> {
+  ): Promise<{ success: boolean; error?: string }> {
     // Format inline comments
     const inlineComments: ReviewComment[] = issues
       .filter((issue) => issue.line > 0)
@@ -63,9 +63,24 @@ export class CommentPosterService {
           summaryBody,
         );
       }
-    } catch (error) {
+
+      this.logger.log(`Successfully posted review comments to ${owner}/${repo}#${prNumber}`);
+      return { success: true };
+    } catch (error: any) {
+      // Handle permission errors gracefully
+      if (error.status === 403 && error.message?.includes('Resource not accessible by integration')) {
+        this.logger.warn(`GitHub permissions insufficient for ${owner}/${repo}#${prNumber}. Review results stored in database.`);
+        return {
+          success: false,
+          error: 'GitHub permissions insufficient. Review completed and stored in database.'
+        };
+      }
+
       this.logger.error('Failed to post review comments:', error);
-      throw error;
+      return {
+        success: false,
+        error: error.message || 'Failed to post comments to GitHub'
+      };
     }
   }
 

@@ -130,6 +130,7 @@ export class GithubWebhookController {
 export class GithubController {
   constructor(
     private installationService: GithubInstallationService,
+    private queueService: QueueService,
     private reviewsService: ReviewsService,
   ) {}
 
@@ -208,6 +209,13 @@ export class GithubController {
     }
 
     try {
+      console.log('Fetching PR details for:', {
+        installationId: installation.installationId,
+        owner,
+        repoName,
+        prNumber,
+      });
+
       // Get PR details from GitHub
       const prDetails = await this.installationService.fetchPRDetails(
         installation.installationId,
@@ -215,6 +223,18 @@ export class GithubController {
         repoName,
         prNumber,
       );
+
+      console.log('PR details fetched:', prDetails);
+
+      console.log('Creating review in database with data:', {
+        repositoryId: repo._id,
+        installationId: installation._id,
+        prNumber: prNumber,
+        prTitle: prDetails.title,
+        prAuthor: prDetails.author,
+        prUrl: prDetails.url,
+        commitSha: prDetails.headSha,
+      });
 
       // Create review in database
       const review = await this.reviewsService.create({
@@ -227,9 +247,24 @@ export class GithubController {
         commitSha: prDetails.headSha,
       });
 
-      // TODO: Queue the review for processing
-      // For now, return the created review ID
-      return { data: { reviewId: review._id.toString() } };
+      console.log('Review created with ID:', review._id);
+
+      // Queue the review for processing
+      const jobId = await this.queueService.addReviewJob({
+        installationId: installation.installationId,
+        repositoryId: repo._id.toString(),
+        owner: owner,
+        repo: repoName,
+        prNumber: prNumber,
+        prTitle: prDetails.title,
+        prAuthor: prDetails.author,
+        prUrl: prDetails.url,
+        commitSha: prDetails.headSha,
+      });
+
+      console.log('Review queued with job ID:', jobId);
+
+      return { data: { reviewId: review._id.toString(), jobId: jobId } };
     } catch (error) {
       console.error('Error triggering review:', error);
       throw new BadRequestException('Failed to trigger review');
