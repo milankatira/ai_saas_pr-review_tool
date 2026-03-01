@@ -9,7 +9,7 @@ import {
 import { ReviewIssue } from '../ai-review/prompt-builder.service';
 
 export interface CreateReviewDto {
-  userId: Types.ObjectId;
+  userId?: Types.ObjectId;
   repositoryId: Types.ObjectId;
   installationId: Types.ObjectId;
   organizationId?: Types.ObjectId;

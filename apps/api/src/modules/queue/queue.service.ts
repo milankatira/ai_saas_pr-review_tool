@@ -3,6 +3,7 @@ import { InjectQueue } from '@nestjs/bull';
 import { Queue } from 'bull';
 
 export interface ReviewJobData {
+  reviewId: string;
   installationId: number;
   repositoryId: string;
   owner: string;

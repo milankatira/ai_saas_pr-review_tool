@@ -98,7 +98,22 @@ export class GithubWebhookController {
       return { received: true, skipped: true, reason: 'Repository not active' };
     }
 
+    // Create review in database first
+    const review = await this.reviewsService.create({
+      repositoryId: repoDoc._id,
+      installationId: installationDoc._id,
+      organizationId: installationDoc.organizationId,
+      prNumber: pull_request.number,
+      prTitle: pull_request.title,
+      prAuthor: pull_request.user.login,
+      prUrl: pull_request.html_url,
+      commitSha: pull_request.head.sha,
+    });
+
+    console.log('Review created with ID:', review._id);
+
     console.log('Adding job to queue with data:', {
+      reviewId: review._id.toString(),
       installationId: installationDoc.installationId,
       repositoryId: repoDoc._id.toString(),
       owner: repository.owner.login,
@@ -112,6 +127,7 @@ export class GithubWebhookController {
 
     // Queue the review job
     const jobId = await this.queueService.addReviewJob({
+      reviewId: review._id.toString(),
       installationId: installationDoc.installationId,
       repositoryId: repoDoc._id.toString(),
       owner: repository.owner.login,
@@ -261,6 +277,7 @@ export class GithubController {
 
       // Queue the review for processing
       const jobId = await this.queueService.addReviewJob({
+        reviewId: review._id.toString(),
         installationId: installation.installationId,
         repositoryId: repo._id.toString(),
         owner: owner,
