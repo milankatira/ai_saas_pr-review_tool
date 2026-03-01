@@ -161,7 +161,7 @@ GITHUB_WEBHOOK_SECRET=your-webhook-secret
 ```env
 # Get from https://console.anthropic.com/
 ANTHROPIC_API_KEY=your-anthropic-api-key
-ANTHROPIC_MODEL=claude-sonnet-4-20250514
+ANTHROPIC_MODEL=claude-3.5-sonnet-20240620
 ```
 
 #### Payment Processing (Optional for Development)
