@@ -291,7 +291,7 @@ pnpm typecheck
 pnpm db:migrate
 ```
 
-##📚 Documentationation
+## 📚 Documentation
 
 ### Authentication
 
