@@ -12,6 +12,7 @@ export interface ReviewJobData {
   prAuthor: string;
   prUrl: string;
   commitSha: string;
+  userId: string;
 }
 
 @Injectable()

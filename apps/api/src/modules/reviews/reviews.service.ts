@@ -9,6 +9,7 @@ import {
 import { ReviewIssue } from '../ai-review/prompt-builder.service';
 
 export interface CreateReviewDto {
+  userId: Types.ObjectId;
   repositoryId: Types.ObjectId;
   installationId: Types.ObjectId;
   organizationId?: Types.ObjectId;
@@ -76,6 +77,54 @@ export class ReviewsService {
     options: { limit?: number; skip?: number; status?: ReviewStatus } = {},
   ): Promise<{ reviews: ReviewDocument[]; total: number }> {
     const query: Record<string, unknown> = { organizationId };
+    if (options.status) {
+      query.status = options.status;
+    }
+
+    const [reviews, total] = await Promise.all([
+      this.reviewModel
+        .find(query)
+        .sort({ createdAt: -1 })
+        .skip(options.skip || 0)
+        .limit(options.limit || 20)
+        .populate('repositoryId')
+        .exec(),
+      this.reviewModel.countDocuments(query).exec(),
+    ]);
+
+    return { reviews, total };
+  }
+
+  async findByUser(
+    userId: Types.ObjectId,
+    options: { limit?: number; skip?: number; status?: ReviewStatus } = {},
+  ): Promise<{ reviews: ReviewDocument[]; total: number }> {
+    const query: Record<string, unknown> = { userId };
+    if (options.status) {
+      query.status = options.status;
+    }
+
+    const [reviews, total] = await Promise.all([
+      this.reviewModel
+        .find(query)
+        .sort({ createdAt: -1 })
+        .skip(options.skip || 0)
+        .limit(options.limit || 20)
+        .populate('repositoryId')
+        .exec(),
+      this.reviewModel.countDocuments(query).exec(),
+    ]);
+
+    return { reviews, total };
+  }
+
+  async findAllForUser(
+    organizationIds: Types.ObjectId[],
+    options: { limit?: number; skip?: number; status?: ReviewStatus } = {},
+  ): Promise<{ reviews: ReviewDocument[]; total: number }> {
+    const query: Record<string, unknown> = { 
+      organizationId: { $in: organizationIds }
+    };
     if (options.status) {
       query.status = options.status;
     }

@@ -1,6 +1,9 @@
 import { Controller, Post, Body, Headers, UseGuards, Get, Param, Patch, BadRequestException } from '@nestjs/common';
 import { Types } from 'mongoose';
 import { GithubWebhookGuard } from '../../common/guards/github-webhook.guard';
+import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
+import { CurrentUser } from '../../common/decorators/current-user.decorator';
+import { UserDocument } from '../users/schemas/user.schema';
 import { GithubInstallationService } from './github-installation.service';
 import { QueueService } from '../queue/queue.service';
 import { ReviewsService } from '../reviews/reviews.service';
@@ -171,7 +174,11 @@ export class GithubController {
   }
 
   @Post('reviews/trigger')
-  async triggerReview(@Body() body: { repositoryId: string; prNumber: number }) {
+  @UseGuards(JwtAuthGuard)
+  async triggerReview(
+    @CurrentUser() user: UserDocument,
+    @Body() body: { repositoryId: string; prNumber: number },
+  ) {
     console.log('=== triggerReview endpoint hit ===');
     console.log('triggerReview called with:', body);
     const { repositoryId, prNumber } = body;
@@ -234,12 +241,15 @@ export class GithubController {
         prAuthor: prDetails.author,
         prUrl: prDetails.url,
         commitSha: prDetails.headSha,
+        userId: user._id,
       });
 
       // Create review in database
       const review = await this.reviewsService.create({
+        userId: user._id,
         repositoryId: repo._id,
         installationId: installation._id,
+        organizationId: installation.organizationId,
         prNumber: prNumber,
         prTitle: prDetails.title,
         prAuthor: prDetails.author,
@@ -260,6 +270,7 @@ export class GithubController {
         prAuthor: prDetails.author,
         prUrl: prDetails.url,
         commitSha: prDetails.headSha,
+        userId: user._id.toString(),
       });
 
       console.log('Review queued with job ID:', jobId);

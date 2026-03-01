@@ -27,7 +27,7 @@ export class ReviewProcessor {
   @Process('process-review')
   async processReview(job: Job<ReviewJobData>) {
     console.log('ReviewProcessor: Received job', job.data);
-    const { installationId, repositoryId, owner, repo, prNumber, prTitle, prAuthor, prUrl, commitSha } =
+    const { installationId, repositoryId, owner, repo, prNumber, prTitle, prAuthor, prUrl, commitSha, userId } =
       job.data;
 
     this.logger.log(`Processing review for ${owner}/${repo}#${prNumber}`);
@@ -70,6 +70,7 @@ export class ReviewProcessor {
 
     // Create review record
     const review = await this.reviewsService.create({
+      userId: new Types.ObjectId(userId),
       repositoryId: repoDoc._id,
       installationId: installationDoc._id,
       organizationId: installationDoc.organizationId,
