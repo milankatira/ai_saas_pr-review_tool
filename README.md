@@ -148,7 +148,7 @@ GITHUB_CALLBACK_URL=http://localhost:3001/auth/github/callback
 4. After creation:
    - Copy the App ID
    - Generate and download the private key
-   - Encode the private key: `base64 -i private-key.pem`
+   - Encode the private key: `openssl base64 -A -in private-key.pem`
    - Copy the webhook secret you generated
 
 ```env
