@@ -91,136 +91,208 @@ export default function CreateReviewPage() {
     if (reposLoading) {
         return (
             <div className="space-y-6">
-                <div>
-                    <h1 className="text-3xl font-bold">Create Review</h1>
-                    <p className="text-muted-foreground">Trigger AI code review for a pull request</p>
+                <div className="text-center">
+                    <h1 className="text-3xl font-bold text-foreground">Create AI Code Review</h1>
+                    <p className="text-muted-foreground mt-2">Loading your repositories...</p>
                 </div>
-                <Skeleton className="h-64 w-full" />
+                <Card>
+                    <CardContent className="p-8">
+                        <div className="flex flex-col items-center justify-center space-y-4">
+                            <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                            <p className="text-muted-foreground">Loading repositories and pull requests...</p>
+                        </div>
+                    </CardContent>
+                </Card>
             </div>
         );
     }
 
     return (
         <div className="space-y-6">
-            <div>
-                <h1 className="text-3xl font-bold">Create Review</h1>
-                <p className="text-muted-foreground">Trigger AI code review for a pull request</p>
+            <div className="text-center">
+                <h1 className="text-3xl font-bold text-foreground">Create AI Code Review</h1>
+                <p className="text-muted-foreground mt-2">Trigger intelligent code analysis for your pull requests</p>
             </div>
 
             <Card>
                 <CardHeader>
-                    <CardTitle>Review Configuration</CardTitle>
+                    <CardTitle className="text-foreground">Review Configuration</CardTitle>
                     <CardDescription>
-                        Select a repository and pull request to analyze
+                        Select a repository and pull request to analyze with AI
                     </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-6">
                     {/* Repository Selection */}
                     <div className="space-y-2">
-                        <label className="text-sm font-medium">Repository</label>
+                        <label className="text-sm font-medium text-foreground">Repository</label>
                         <Select value={selectedRepo} onValueChange={setSelectedRepo}>
-                            <SelectTrigger>
+                            <SelectTrigger className="w-full">
                                 <SelectValue placeholder="Select a repository" />
                             </SelectTrigger>
                             <SelectContent>
-                                {repositories.map((repo) => (
-                                    <SelectItem key={repo._id} value={repo._id}>
-                                        <div className="flex items-center gap-2">
-                                            <GitBranch className="h-4 w-4" />
-                                            {repo.fullName}
+                                {repositories.length === 0 ? (
+                                    <SelectItem value="no-repos" disabled>
+                                        <div className="flex items-center gap-2 text-muted-foreground">
+                                            <FileCode className="h-4 w-4" />
+                                            No repositories available
                                         </div>
                                     </SelectItem>
-                                ))}
+                                ) : (
+                                    repositories.map((repo) => (
+                                        <SelectItem key={repo._id} value={repo._id}>
+                                            <div className="flex items-center gap-2">
+                                                <GitBranch className="h-4 w-4 text-muted-foreground" />
+                                                <span className="font-medium">{repo.fullName}</span>
+                                                {!repo.isActive && (
+                                                    <span className="text-xs text-muted-foreground">(Inactive)</span>
+                                                )}
+                                            </div>
+                                        </SelectItem>
+                                    ))
+                                )}
                             </SelectContent>
                         </Select>
+                        {repositories.length > 0 && (
+                            <p className="text-xs text-muted-foreground">
+                                Select a repository with the GitHub App installed
+                            </p>
+                        )}
                     </div>
 
                     {/* Pull Request Selection */}
                     <div className="space-y-2">
-                        <label className="text-sm font-medium">Pull Request</label>
+                        <label className="text-sm font-medium text-foreground">Pull Request</label>
                         <Select
                             value={selectedPR}
                             onValueChange={setSelectedPR}
                             disabled={!selectedRepo || isLoadingPRs}
                         >
-                            <SelectTrigger>
+                            <SelectTrigger className="w-full">
                                 <SelectValue placeholder={isLoadingPRs ? "Loading PRs..." : "Select a pull request"} />
                             </SelectTrigger>
                             <SelectContent>
                                 {isLoadingPRs ? (
-                                    <div className="p-4 text-center text-muted-foreground">
-                                        <Loader2 className="mx-auto h-4 w-4 animate-spin" />
-                                        <p className="text-sm mt-2">Loading pull requests...</p>
-                                    </div>
+                                    <SelectItem value="loading" disabled>
+                                        <div className="flex items-center gap-2 text-muted-foreground">
+                                            <Loader2 className="h-4 w-4 animate-spin" />
+                                            <span>Loading pull requests...</span>
+                                        </div>
+                                    </SelectItem>
                                 ) : pullRequests.length === 0 ? (
-                                    <div className="p-4 text-center text-muted-foreground">
-                                        <FileCode className="mx-auto h-8 w-8 opacity-50" />
-                                        <p className="text-sm mt-2">No pull requests found</p>
-                                    </div>
+                                    <SelectItem value="no-prs" disabled>
+                                        <div className="flex items-center gap-2 text-muted-foreground">
+                                            <FileCode className="h-4 w-4" />
+                                            <span>No open pull requests found</span>
+                                        </div>
+                                    </SelectItem>
                                 ) : (
                                     pullRequests
                                         .filter(pr => pr.state === 'open')
                                         .map((pr) => (
                                             <SelectItem key={pr.number} value={pr.number.toString()}>
-                                                <div className="flex flex-col">
-                                                    <span className="font-medium">#{pr.number} {pr.title}</span>
-                                                    <span className="text-xs text-muted-foreground">
-                                                        by {pr.author} • {new Date(pr.created_at).toLocaleDateString()}
-                                                    </span>
+                                                <div className="flex flex-col gap-1 py-1">
+                                                    <div className="flex items-center gap-2">
+                                                        <span className="font-medium">#{pr.number}</span>
+                                                        <span className="truncate">{pr.title}</span>
+                                                    </div>
+                                                    <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                                                        <span>by {pr.author}</span>
+                                                        <span>•</span>
+                                                        <span>{new Date(pr.created_at).toLocaleDateString()}</span>
+                                                    </div>
                                                 </div>
                                             </SelectItem>
                                         ))
                                 )}
                             </SelectContent>
                         </Select>
+                        {selectedRepo && !isLoadingPRs && pullRequests.length > 0 && (
+                            <p className="text-xs text-muted-foreground">
+                                Only open pull requests are shown
+                            </p>
+                        )}
                     </div>
 
                     {/* Error Message */}
                     {error && (
-                        <div className="flex items-center gap-2 p-3 rounded-md bg-destructive/10 text-destructive">
-                            <AlertCircle className="h-4 w-4" />
-                            <span className="text-sm">{error}</span>
+                        <div className="flex items-start gap-3 p-4 rounded-lg border border-destructive/30 bg-destructive/5">
+                            <AlertCircle className="h-5 w-5 text-destructive mt-0.5 flex-shrink-0" />
+                            <div>
+                                <h3 className="font-medium text-destructive">Error</h3>
+                                <p className="text-sm text-destructive/80 mt-1">{error}</p>
+                            </div>
                         </div>
                     )}
 
                     {/* Action Button */}
-                    <div className="pt-4">
+                    <div className="pt-6">
                         <Button
                             onClick={handleTriggerReview}
                             disabled={!selectedRepo || !selectedPR || isTriggering || isLoadingPRs}
-                            className="w-full"
-                            size="lg"
+                            className="w-full h-12 text-base font-medium transition-all duration-200 hover:shadow-lg"
                         >
                             {isTriggering ? (
                                 <>
-                                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                    <Loader2 className="mr-2 h-5 w-5 animate-spin" />
                                     Triggering Review...
                                 </>
                             ) : (
                                 <>
-                                    <Play className="mr-2 h-4 w-4" />
+                                    <Play className="mr-2 h-5 w-5" />
                                     Trigger AI Review
                                 </>
                             )}
                         </Button>
+                        <p className="text-center text-xs text-muted-foreground mt-3">
+                            {selectedRepo && selectedPR
+                                ? "Click to start AI code review on this pull request"
+                                : "Select a repository and pull request to enable review"}
+                        </p>
                     </div>
                 </CardContent>
             </Card>
 
             {/* Info Card */}
-            <Card>
+            <Card className="border-muted/30">
                 <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                        <Plus className="h-5 w-5" />
+                    <CardTitle className="flex items-center gap-2 text-foreground">
+                        <Plus className="h-5 w-5 text-primary" />
                         How it works
                     </CardTitle>
                 </CardHeader>
-                <CardContent className="space-y-2 text-sm text-muted-foreground">
-                    <p>• Select a repository that has the GitHub App installed</p>
-                    <p>• Choose an open pull request to review</p>
-                    <p>• Click "Trigger AI Review" to start the analysis</p>
-                    <p>• You'll be redirected to the review page to see results</p>
-                    <p>• The review will appear as comments on the GitHub PR</p>
+                <CardContent className="space-y-3">
+                    <div className="flex items-start gap-3">
+                        <div className="flex-shrink-0 w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center mt-0.5">
+                            <span className="text-primary text-sm font-medium">1</span>
+                        </div>
+                        <div>
+                            <h4 className="font-medium text-foreground">Select Repository</h4>
+                            <p className="text-sm text-muted-foreground">Choose a repository with the GitHub App installed</p>
+                        </div>
+                    </div>
+                    <div className="flex items-start gap-3">
+                        <div className="flex-shrink-0 w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center mt-0.5">
+                            <span className="text-primary text-sm font-medium">2</span>
+                        </div>
+                        <div>
+                            <h4 className="font-medium text-foreground">Choose Pull Request</h4>
+                            <p className="text-sm text-muted-foreground">Select an open pull request to analyze</p>
+                        </div>
+                    </div>
+                    <div className="flex items-start gap-3">
+                        <div className="flex-shrink-0 w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center mt-0.5">
+                            <span className="text-primary text-sm font-medium">3</span>
+                        </div>
+                        <div>
+                            <h4 className="font-medium text-foreground">Trigger Review</h4>
+                            <p className="text-sm text-muted-foreground">Click to start AI code analysis</p>
+                        </div>
+                    </div>
+                    <div className="pt-2 border-t border-muted/20">
+                        <p className="text-xs text-muted-foreground">
+                            <span className="font-medium">Note:</span> The AI review will be posted as comments directly on the GitHub pull request.
+                        </p>
+                    </div>
                 </CardContent>
             </Card>
         </div>
