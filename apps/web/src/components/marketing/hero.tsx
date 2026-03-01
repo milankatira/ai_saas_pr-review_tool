@@ -14,7 +14,7 @@ export function Hero() {
                     </h1>
                     <p className="mx-auto mt-6 max-w-2xl text-lg text-muted-foreground">
                         Get instant, intelligent feedback on your GitHub pull requests. Our AI analyzes
-                        readability, performance, security, and React best practices to help you ship
+                        correctness, security, performance, and maintainability to help you ship
                         better code faster.
                     </p>
                     <div className="mt-10 flex flex-col items-center justify-center gap-4 sm:flex-row">
@@ -40,28 +40,28 @@ export function Hero() {
 export function Features() {
     const features = [
         {
-            icon: BookOpen,
-            title: 'Readability Analysis',
+            icon: Code2,
+            title: 'Correctness & Logic',
             description:
-                'Get feedback on naming conventions, code complexity, function length, and clarity of logic.',
-        },
-        {
-            icon: Zap,
-            title: 'Performance Smells',
-            description:
-                'Detect unnecessary re-renders, N+1 queries, expensive computations, and missing memoization.',
+                'Detect bugs, race conditions, edge cases, and logic errors before they reach production.',
         },
         {
             icon: Shield,
-            title: 'Security Hints',
+            title: 'Security & Vulnerabilities',
             description:
-                'Find XSS vulnerabilities, injection risks, hardcoded secrets, and insecure data handling.',
+                'Find injection risks, data leaks, insecure authentication, and vulnerable dependencies.',
         },
         {
-            icon: Code2,
-            title: 'React Anti-patterns',
+            icon: Zap,
+            title: 'Performance & Efficiency',
             description:
-                'Catch missing hook dependencies, direct state mutation, effects without cleanup, and more.',
+                'Identify N+1 queries, unnecessary re-renders, expensive loops, and memory leaks.',
+        },
+        {
+            icon: BookOpen,
+            title: 'Maintainability & Best Practices',
+            description:
+                'Ensure clean code, proper naming, modularity, and adherence to modern coding standards.',
         },
     ];
 
@@ -70,10 +70,10 @@ export function Features() {
             <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
                 <div className="text-center">
                     <h2 className="text-3xl font-bold tracking-tight sm:text-4xl">
-                        What We Check
+                        Comprehensive Code Analysis
                     </h2>
                     <p className="mx-auto mt-4 max-w-2xl text-lg text-muted-foreground">
-                        Our AI reviewer focuses on the issues that matter most for code quality.
+                        Our AI reviewer acts as a strict Senior Engineer, catching issues that matter.
                     </p>
                 </div>
 

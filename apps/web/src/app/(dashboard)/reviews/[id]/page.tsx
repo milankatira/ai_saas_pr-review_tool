@@ -17,10 +17,11 @@ const severityConfig = {
 };
 
 const categoryLabels: Record<string, string> = {
-    readability: 'Readability',
-    performance: 'Performance',
+    correctness: 'Correctness & Logic',
     security: 'Security',
-    'react-antipattern': 'React Patterns',
+    performance: 'Performance',
+    maintainability: 'Maintainability',
+    best_practice: 'Best Practices',
 };
 
 export default function ReviewDetailPage() {

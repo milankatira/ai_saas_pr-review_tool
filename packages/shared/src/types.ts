@@ -73,7 +73,7 @@ export interface Repository {
 // Review types
 export type ReviewStatus = 'pending' | 'processing' | 'completed' | 'failed';
 export type Severity = 'error' | 'warning' | 'info';
-export type Category = 'readability' | 'performance' | 'security' | 'react-antipattern';
+export type Category = 'correctness' | 'security' | 'performance' | 'maintainability' | 'best_practice';
 
 export interface ReviewSummary {
   totalIssues: number;

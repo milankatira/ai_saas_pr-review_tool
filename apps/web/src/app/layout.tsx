@@ -8,7 +8,7 @@ const inter = Inter({ subsets: ['latin'] });
 export const metadata: Metadata = {
     title: 'CodeReview AI - AI-Powered Code Reviews for GitHub PRs',
     description:
-        'Automated code review tool that uses AI to analyze your GitHub pull requests for readability, performance, security, and React best practices.',
+        'Automated code review tool that uses AI to analyze your GitHub pull requests for correctness, security, performance, and maintainability.',
 };
 
 export default function RootLayout({
