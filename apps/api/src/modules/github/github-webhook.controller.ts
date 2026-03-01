@@ -68,10 +68,12 @@ export class GithubWebhookController {
   }
 
   private async handlePullRequestEvent(payload: any) {
+    console.log('handlePullRequestEvent called with payload:', payload);
     const { action, pull_request, repository, installation } = payload;
 
     // Only process opened, reopened, or synchronized (new commits pushed)
     if (!['opened', 'reopened', 'synchronize'].includes(action)) {
+      console.log('Skipping action:', action);
       return { received: true, action, skipped: true };
     }
 
@@ -93,8 +95,7 @@ export class GithubWebhookController {
       return { received: true, skipped: true, reason: 'Repository not active' };
     }
 
-    // Queue the review job
-    await this.queueService.addReviewJob({
+    console.log('Adding job to queue with data:', {
       installationId: installationDoc.installationId,
       repositoryId: repoDoc._id.toString(),
       owner: repository.owner.login,
@@ -105,6 +106,21 @@ export class GithubWebhookController {
       prUrl: pull_request.html_url,
       commitSha: pull_request.head.sha,
     });
+
+    // Queue the review job
+    const jobId = await this.queueService.addReviewJob({
+      installationId: installationDoc.installationId,
+      repositoryId: repoDoc._id.toString(),
+      owner: repository.owner.login,
+      repo: repository.name,
+      prNumber: pull_request.number,
+      prTitle: pull_request.title,
+      prAuthor: pull_request.user.login,
+      prUrl: pull_request.html_url,
+      commitSha: pull_request.head.sha,
+    });
+
+    console.log('Job added with ID:', jobId);
 
     return { received: true, action, queued: true };
   }
@@ -155,21 +171,31 @@ export class GithubController {
 
   @Post('reviews/trigger')
   async triggerReview(@Body() body: { repositoryId: string; prNumber: number }) {
+    console.log('=== triggerReview endpoint hit ===');
+    console.log('triggerReview called with:', body);
     const { repositoryId, prNumber } = body;
+
+    console.log('Looking up repository with ID:', repositoryId);
 
     // Get repository details
     const repo = await this.installationService.getRepositoryById(
       new Types.ObjectId(repositoryId),
     );
 
+    console.log('Repository lookup result:', repo);
+
     if (!repo) {
       throw new BadRequestException('Repository not found');
     }
+
+    console.log('Looking up installation with ID:', repo.installationId);
 
     // Get installation details
     const installation = await this.installationService.getInstallationById(
       repo.installationId,
     );
+
+    console.log('Installation lookup result:', installation);
 
     if (!installation) {
       throw new BadRequestException('Installation not found');

@@ -1,6 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import Anthropic from '@anthropic-ai/sdk';
+import { Ollama } from 'ollama';
 import {
   PromptBuilderService,
   AIReviewResponse,
@@ -29,7 +30,9 @@ export interface ReviewResult {
 @Injectable()
 export class AiReviewService {
   private readonly logger = new Logger(AiReviewService.name);
-  private client: Anthropic;
+  private anthropicClient: Anthropic;
+  private ollamaClient: Ollama;
+  private useOllama: boolean;
   private model: string;
 
   // Claude pricing (as of 2024)
@@ -41,10 +44,20 @@ export class AiReviewService {
     private promptBuilder: PromptBuilderService,
     private diffParser: DiffParserService,
   ) {
-    this.client = new Anthropic({
-      apiKey: this.configService.get<string>('anthropic.apiKey'),
-    });
-    this.model = this.configService.get<string>('anthropic.model') || 'claude-sonnet-4-20250514';
+    // Use Ollama in development mode, Anthropic in production
+    this.useOllama = this.configService.get<string>('NODE_ENV') === 'development';
+
+    if (this.useOllama) {
+      this.logger.log('Using Ollama for code review');
+      this.ollamaClient = new Ollama();
+      this.model = 'deepseek-coder'; // Using existing model
+    } else {
+      this.logger.log('Using Anthropic Claude for code review');
+      this.anthropicClient = new Anthropic({
+        apiKey: this.configService.get<string>('anthropic.apiKey'),
+      });
+      this.model = this.configService.get<string>('anthropic.model') || 'claude-sonnet-4-20250514';
+    }
   }
 
   async reviewCode(
@@ -125,9 +138,10 @@ export class AiReviewService {
     };
 
     // Calculate cost
-    const costUsd =
-      (totalInputTokens / 1_000_000) * this.INPUT_COST_PER_MILLION +
-      (totalOutputTokens / 1_000_000) * this.OUTPUT_COST_PER_MILLION;
+    const costUsd = this.useOllama
+      ? 0 // Ollama is free
+      : (totalInputTokens / 1_000_000) * this.INPUT_COST_PER_MILLION +
+        (totalOutputTokens / 1_000_000) * this.OUTPUT_COST_PER_MILLION;
 
     return {
       issues: uniqueIssues,
@@ -162,15 +176,75 @@ export class AiReviewService {
       hasReactFiles,
     );
 
+    if (this.useOllama) {
+      return this.callOllama(systemPrompt, userPrompt);
+    } else {
+      return this.callAnthropic(systemPrompt, userPrompt);
+    }
+  }
+
+  private async callOllama(
+    systemPrompt: string,
+    userPrompt: string,
+  ): Promise<{
+    response: AIReviewResponse | null;
+    inputTokens: number;
+    outputTokens: number;
+  }> {
     try {
-      const message = await this.client.messages.create({
+      this.logger.log('Calling Ollama with deepseek-coder model');
+
+      const response = await this.ollamaClient.chat({
+        model: this.model,
+        messages: [
+          { role: 'system', content: systemPrompt },
+          { role: 'user', content: userPrompt }
+        ],
+        options: {
+          temperature: 0.1,
+          num_predict: 2048
+        }
+      });
+
+      const responseText = response.message.content;
+      const parsed = this.promptBuilder.parseAIResponse(responseText);
+
+      // Ollama doesn't provide token counts, so we'll estimate
+      const inputTokens = systemPrompt.length + userPrompt.length;
+      const outputTokens = responseText.length;
+
+      return {
+        response: parsed,
+        inputTokens: inputTokens,
+        outputTokens: outputTokens,
+      };
+    } catch (error) {
+      this.logger.error('Ollama API error:', error);
+      return {
+        response: null,
+        inputTokens: 0,
+        outputTokens: 0,
+      };
+    }
+  }
+
+  private async callAnthropic(
+    systemPrompt: string,
+    userPrompt: string,
+  ): Promise<{
+    response: AIReviewResponse | null;
+    inputTokens: number;
+    outputTokens: number;
+  }> {
+    try {
+      const message = await this.anthropicClient.messages.create({
         model: this.model,
         max_tokens: 4096,
         system: systemPrompt,
         messages: [{ role: 'user', content: userPrompt }],
       });
 
-      const textContent = message.content.find((c) => c.type === 'text');
+      const textContent = message.content.find((c: any) => c.type === 'text');
       const responseText = textContent?.type === 'text' ? textContent.text : '';
 
       const parsed = this.promptBuilder.parseAIResponse(responseText);

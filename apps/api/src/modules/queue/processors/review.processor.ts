@@ -26,6 +26,7 @@ export class ReviewProcessor {
 
   @Process('process-review')
   async processReview(job: Job<ReviewJobData>) {
+    console.log('ReviewProcessor: Received job', job.data);
     const { installationId, repositoryId, owner, repo, prNumber, prTitle, prAuthor, prUrl, commitSha } =
       job.data;
 

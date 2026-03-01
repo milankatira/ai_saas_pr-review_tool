@@ -19,6 +19,7 @@ export class QueueService {
   constructor(@InjectQueue('reviews') private reviewQueue: Queue) {}
 
   async addReviewJob(data: ReviewJobData): Promise<string> {
+    console.log('Adding review job to queue:', data);
     const job = await this.reviewQueue.add('process-review', data, {
       attempts: 3,
       backoff: {
@@ -29,6 +30,7 @@ export class QueueService {
       removeOnFail: 1000,
     });
 
+    console.log('Job added with ID:', job.id);
     return job.id.toString();
   }
 

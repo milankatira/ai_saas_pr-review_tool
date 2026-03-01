@@ -30,6 +30,7 @@
     "class-validator": "^0.14.1",
     "helmet": "^8.0.0",
     "mongoose": "^8.8.0",
+    "ollama": "^0.6.3",
     "passport": "^0.7.0",
     "passport-github2": "^0.1.12",
     "passport-jwt": "^4.0.1",
