@@ -21,7 +21,7 @@ An AI-powered SaaS platform that automatically reviews GitHub pull requests usin
 - **React Query** - Data fetching and state management
 
 ### Backend
-- **NestJS 10.4** - Node.js framework
+- **NestJS 10.3** - Node.js framework
 - **MongoDB** - Database (Mongoose ODM)
 - **Redis** - Queue processing (Bull)
 - **Passport.js** - Authentication
